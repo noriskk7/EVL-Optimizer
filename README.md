@@ -47,6 +47,9 @@ If the build cannot clean `dist\` because another program holds `app.asar`, buil
 
 🛡️ The exe is not code-signed, so SmartScreen and some antivirus products may warn about it. Compare the SHA-256 of what you downloaded with the one published in the release.
 
+## 🤝 Contributing
+Pull requests are welcome! Bug fixes, translations and improvements are all appreciated. By submitting a contribution you agree to the contribution terms in section 4 of the [license](LICENSE): you grant EvlCorp a license to use it in the Software.
+
 ## 📄 License
 [EVL Software License 1.0](LICENSE): free for personal use and small businesses (up to 100 people). Third-party: Electron (MIT), koffi (MIT) and the Inter font (OFL-1.1).
 

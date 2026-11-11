@@ -47,6 +47,9 @@ Se o build não conseguir limpar `dist\` porque outro programa segura o `app.asa
 
 🛡️ O exe não tem assinatura digital, então o SmartScreen e alguns antivírus podem avisar. Compare o SHA-256 do arquivo baixado com o publicado no release.
 
+## 🤝 Contribuindo
+Pull requests são bem-vindos! Correções, traduções e melhorias são todas apreciadas. Ao enviar uma contribuição, você aceita os termos de contribuição da seção 4 da [licença](LICENSE): você concede à EvlCorp uma licença para usá-la no Software.
+
 ## 📄 Licença
 [EVL Software License 1.0](LICENSE): grátis para uso pessoal e pequenas empresas (até 100 pessoas). Terceiros: Electron (MIT), koffi (MIT) e fonte Inter (OFL-1.1).
 
