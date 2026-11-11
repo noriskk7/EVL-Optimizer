@@ -1,0 +1,62 @@
+{
+  "name": "evl-optimizer",
+  "productName": "EVL Optimizer",
+  "version": "2.0.0",
+  "description": "EVL Optimizer",
+  "main": "src/main.js",
+  "author": "EVL (https://evlcorp.lol)",
+  "license": "SEE LICENSE IN LICENSE",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.5",
+    "koffi": "^3.3.7"
+  },
+  "devDependencies": {
+    "electron": "^45.2.2",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.evl.optimizer",
+    "productName": "EVL Optimizer",
+    "copyright": "EVL",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "package.json",
+      "node_modules/koffi/**/*",
+      "!node_modules/koffi/src/koffi/src/**/*.{cc,hh,inc,c,h,S,asm}",
+      "!node_modules/koffi/vendor/**",
+      "!node_modules/koffi/doc/**",
+      "!node_modules/koffi/src/koffi/CMakeLists.txt",
+      "node_modules/@koromix/koffi-win32-x64/**/*",
+      "node_modules/@fontsource-variable/inter/package.json",
+      "node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+      "node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2"
+    ],
+    "asarUnpack": [
+      "node_modules/@koromix/koffi-win32-x64/**/*"
+    ],
+    "win": {
+      "requestedExecutionLevel": "requireAdministrator",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "requestExecutionLevel": "admin",
+      "artifactName": "EVL-Optimizer-Portable-${version}.${ext}"
+    }
+  }
+}

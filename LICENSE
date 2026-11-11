@@ -1,0 +1,186 @@
+EVL SOFTWARE LICENSE
+Version 1.0 — November 11, 2026
+Copyright © 2026 EvlCorp. All rights reserved.
+
+1. Definitions
+
+For the purposes of this License:
+
+* "Licensor" means EvlCorp, the copyright holder or authorized licensing entity of the Software.
+* "Software" means the EVL application distributed together with this License (EVL Optimizer or EVL VideoSystem, as applicable), including its source code, executable files, documentation, updates, and associated materials provided by the Licensor.
+* "Organization" means any company, partnership, nonprofit, government body, school, or other entity, and also any sole proprietor or freelancer using the Software for professional or commercial purposes.
+* "Personal Use" means use by an individual for private, non-commercial purposes.
+* "Small Business" means an Organization employing no more than 100 individuals in total (a sole proprietor or freelancer with no employees is a Small Business).
+* "Large Enterprise" means an Organization employing more than 100 individuals in total.
+* "Internal Use" means use exclusively within an authorized individual or Organization's own operations, without distribution to external parties.
+* "Modification" means any alteration, adaptation, improvement, or derivative work based on the Software.
+
+For employee-count purposes, Organizations under common control shall be considered together. Employees include full-time and part-time personnel, but not independent contractors who are genuinely operating independently.
+
+2. Grant of License
+
+Subject to compliance with this License, EvlCorp grants users a limited, non-exclusive, worldwide, non-transferable, revocable license to access, download, install, execute, inspect, and, where expressly permitted, modify the Software.
+
+No ownership rights are transferred under this License.
+
+All rights not expressly granted remain reserved by EvlCorp.
+
+3. Permitted Free Use
+
+3.1 Personal Use
+
+Individuals may use the Software free of charge for personal, educational, and non-commercial purposes.
+
+Personal users may:
+
+* Download and install the Software.
+* Inspect and study its source code.
+* Modify the source code for private use.
+* Compile and execute personally modified versions.
+* Maintain private copies for backup or development.
+
+Modified versions must remain private and may not be distributed without prior written authorization.
+
+3.2 Small Business Use
+
+Small Businesses may use the Software free of charge for their internal business operations.
+
+Authorized Small Businesses may:
+
+* Install and execute the Software on company-owned or authorized devices.
+* Inspect and audit the source code.
+* Modify the Software for internal operational requirements.
+* Maintain private internal builds.
+* Deploy modified versions internally among authorized personnel.
+
+Such permission does not authorize external distribution, resale, sublicensing, or publication of modified versions.
+
+3.3 Large Enterprise Use
+
+Large Enterprises must obtain a separate commercial license from EvlCorp before installing, executing, modifying, or deploying the Software for organizational use.
+
+Commercial license terms, fees, duration, deployment limits, and additional permissions shall be established through a separate written agreement.
+
+The public availability of the Software or its source code does not constitute authorization for unlicensed enterprise use.
+
+4. Source Code Access, Modification and Contributions
+
+The Software's source code may be publicly accessible for transparency, security review, education, and authorized modification.
+
+Source code availability does not constitute a grant of unrestricted redistribution or commercialization rights. The Software is source-available; it is not "open source" software as defined by the Open Source Initiative.
+
+Users may modify the Software only within the permissions established under Section 3 or a separate written agreement.
+
+Modifications do not grant ownership of the original Software or any underlying intellectual property belonging to EvlCorp.
+
+Users retain any copyright they may independently hold in their original contributions, subject to EvlCorp's rights in the underlying Software.
+
+If you voluntarily submit a contribution to EvlCorp (for example, a pull request, patch, or suggestion), you grant EvlCorp a perpetual, irrevocable, worldwide, royalty-free, sublicensable license to use, modify, and distribute that contribution as part of the Software and under any license EvlCorp chooses. You confirm that you have the right to grant this license.
+
+5. Redistribution Restrictions
+
+Unless expressly authorized in writing by EvlCorp, users may not:
+
+1. Redistribute the Software, whether modified or unmodified.
+2. Publish modified versions or derivative works.
+3. Sell, rent, lease, sublicense, or commercially distribute the Software.
+4. Repackage the Software under another product name for external distribution.
+5. Upload copies or modified versions to third-party distribution platforms or public repositories.
+6. Copy, port, translate, or closely paraphrase protected portions of the Software (including source code, interface text, translations, graphics, and branding) into another product, whether or not that product is distributed.
+7. Provide the Software as part of a commercial software bundle or managed software service.
+
+These restrictions apply to both commercial and non-commercial redistribution.
+
+Ideas, features, and general functionality are not restricted by this License. You may build your own product with similar features, provided it is independently written and does not copy protected material from the Software.
+
+Sharing a link to an official EvlCorp distribution or repository is permitted, provided that the link does not falsely imply endorsement or affiliation.
+
+Where EvlCorp publishes the Software in a public repository on a hosting platform, nothing in this License limits the rights that the platform's terms of service give other users to view the repository and to fork it within that platform. Any such fork remains subject to this License and may not be used to redistribute or publish modified versions beyond what this License permits.
+
+6. Intellectual Property and Trademark Protection
+
+All copyrights, trademarks, logos, trade names, branding elements, and other intellectual property associated with the Software remain the property of EvlCorp or their respective owners.
+
+This License does not grant any trademark rights.
+
+Without prior written authorization, users may not:
+
+* Use EvlCorp trademarks, logos, or branding to identify their own products or services.
+* Impersonate EvlCorp or represent modified software as an official EvlCorp release.
+* Claim endorsement, sponsorship, partnership, or affiliation with EvlCorp.
+* Register confusingly similar product names, domain names, or trademarks.
+* Remove or falsify copyright, ownership, or attribution notices.
+
+Accurate, non-misleading references to EvlCorp or the Software solely for identification or attribution are not prohibited by this License, subject to applicable trademark law.
+
+7. Commercial Licensing
+
+Large Enterprises and parties seeking permissions beyond this License must obtain written authorization from EvlCorp.
+
+A separate commercial agreement may authorize additional activities, including expanded internal deployment, commercial support, white-label or rebranded versions of the Software, OEM or embedded use in a third-party product, redistribution rights, or other specifically negotiated rights. EvlCorp welcomes such requests at support@evlcorp.lol.
+
+No commercial permissions shall be implied from verbal discussions, public source-code availability, or prior unauthorized use.
+
+8. Third-Party Components
+
+The Software may incorporate third-party libraries, frameworks, tools, fonts, or other components governed by separate licenses (for example Electron, koffi, and the Inter and Nunito fonts).
+
+Those components remain subject to their respective licensing terms, and their copyright and license notices must be preserved when they are distributed.
+
+Nothing in this License overrides rights granted by third-party licensors or imposes additional restrictions on independently licensed third-party components.
+
+9. Warranty Disclaimer
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED.
+
+EVLCORP DOES NOT GUARANTEE THAT THE SOFTWARE WILL BE ERROR-FREE, UNINTERRUPTED, COMPATIBLE WITH ALL SYSTEMS, OR SUITABLE FOR EVERY PURPOSE.
+
+USERS ARE RESPONSIBLE FOR REVIEWING SOFTWARE OPERATIONS, MAINTAINING APPROPRIATE BACKUPS, AND EVALUATING SYSTEM CHANGES BEFORE APPLYING THEM.
+
+NOTHING IN THIS SECTION EXCLUDES WARRANTIES OR RIGHTS THAT CANNOT LAWFULLY BE EXCLUDED.
+
+10. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, EVLCORP SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM THE USE OR INABILITY TO USE THE SOFTWARE.
+
+THIS INCLUDES, WITHOUT LIMITATION, LOSS OF DATA, BUSINESS INTERRUPTION, SYSTEM INSTABILITY, OR LOSS OF PROFITS.
+
+NOTHING IN THIS LICENSE EXCLUDES OR LIMITS LIABILITY WHERE SUCH EXCLUSION OR LIMITATION IS PROHIBITED BY APPLICABLE LAW.
+
+11. Termination
+
+EvlCorp may terminate the permissions granted under this License if a user materially violates its terms.
+
+Upon termination, the user must cease unauthorized use and distribution of the Software and delete copies for which the user no longer possesses a valid license, except where retention is required by law.
+
+Termination does not affect rights or obligations that must survive by their nature, including intellectual property protections and accrued legal claims.
+
+EvlCorp may offer an opportunity to remedy a violation before termination at its discretion.
+
+12. License Updates
+
+EvlCorp may publish updated versions of this License.
+
+New versions apply to releases of the Software published after the new version, unless EvlCorp states otherwise. A user may keep using a release already obtained under the License version that came with it, for as long as the user complies with that version, subject to Section 11.
+
+13. Governing Law
+
+This License shall be governed by the applicable laws of the Federative Republic of Brazil, without prejudice to mandatory consumer protection laws or other non-waivable legal provisions.
+
+Disputes shall be resolved by courts having jurisdiction under applicable law.
+
+14. Contact and Permissions
+
+Requests for commercial licensing, redistribution authorization, trademark permissions, or other exceptions must be submitted through EvlCorp's officially designated contact channels (support@evlcorp.lol).
+
+Authorization must be documented in writing by an authorized representative of EvlCorp.
+
+15. General
+
+If any provision of this License is held invalid or unenforceable, the remaining provisions remain in effect and the invalid provision shall be applied to the maximum extent permitted by law.
+
+A failure by EvlCorp to enforce any provision is not a waiver of that provision.
+
+EVL SOFTWARE LICENSE — VERSION 1.0
+Copyright © 2026 EvlCorp. All rights reserved.
+Source available. Free for personal and qualifying small-business use. Commercial licensing required for large enterprises. Unauthorized redistribution prohibited.
