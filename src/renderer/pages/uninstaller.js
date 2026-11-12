@@ -222,6 +222,21 @@
       m.setClosable(false);
       m.setStep(1, 4);
       const status = h('div', { class: 'muted small', style: { minHeight: '18px' } }, '');
+      if (!force && p.location) {
+        let open = await App.invoke('uninstall:running', p.location);
+        while (Array.isArray(open) && open.length) {
+          const choice = await new Promise((resolve) => {
+            m.setBody(h('div', { class: 'empty' }, h('div', { class: 'card-icon', style: { width: '56px', height: '56px', borderRadius: '16px' } }, icon('alert')),
+              h('b', null, t('un.wiz.open')), h('span', null, t('un.wiz.openText')), h('div', { class: 'log', style: { marginTop: '12px', textAlign: 'left' } }, open.map((n) => h('div', null, `• ${n}`)))));
+            m.setFoot(h('button', { class: 'btn ghost', onClick: () => resolve('cancel') }, t('common.cancel')), h('div', { class: 'spacer' }),
+              h('button', { class: 'btn', onClick: () => resolve('go') }, t('un.wiz.openGo')),
+              h('button', { class: 'btn primary', onClick: () => resolve('retry') }, icon('refresh'), t('un.wiz.openRetry')));
+          });
+          if (choice === 'cancel') { m.setClosable(true); m.close(); return; }
+          if (choice === 'go') break;
+          open = await App.invoke('uninstall:running', p.location);
+        }
+      }
       if (restore) {
         m.setBody(h('div', { class: 'empty' }, UI.spinner(), h('b', null, t('un.wiz.restoring'))));
         m.setFoot();
@@ -283,6 +298,7 @@
           const row = h('label', { class: 'leftover' }, box, icon(KIND_ICON[i.kind] || 'file'),
             h('span', { class: 'p ellipsis selectable', title: itemLabel(i) }, groups.length > 1 ? `[${i._program.name}] ` : '', itemLabel(i)),
             h('span', { class: 'small muted num' }, i.size ? UI.bytes(i.size) : ''),
+            i.reason === 'userdata' ? h('span', { class: 'pill warn' }, t('un.reason.userdata')) : null,
             h('span', { class: `pill ${conf}` }, t(`un.conf.${i.confidence}`)));
           wrap.appendChild(row);
         }

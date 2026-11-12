@@ -6,7 +6,7 @@ const reg = require('./registry');
 const fsx = require('./fsx');
 const sys = require('./sysinfo');
 const { J, env, SYSTEM_ROOT, SYSTEM32, dataDir, run, now } = require('./util');
-const { isElevated } = require('./win32');
+const { isElevated, processImagePath } = require('./win32');
 
 const UNINSTALL_KEYS = [
   { root: 'HKLM', path: 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', arch: 'x64' },
@@ -287,6 +287,26 @@ function within(path, dir) {
   return p === d || p.startsWith(d + '\\');
 }
 
+function runningFrom(location) {
+  if (!location || isRootLike(location)) return [];
+  const names = new Set();
+  for (const p of sys.processes()) {
+    if (p.pid <= 4) continue;
+    const image = processImagePath(p.pid);
+    if (image && within(image, location)) names.add(p.name);
+  }
+  return [...names].sort();
+}
+
+const PLUGIN_DIRS = () => [
+  J(env('ProgramFiles'), 'Common Files', 'VST3'), J(env('ProgramFiles(x86)'), 'Common Files', 'VST3'),
+  J(env('ProgramFiles'), 'VSTPlugins'), J(env('ProgramFiles(x86)'), 'VSTPlugins'),
+  J(env('ProgramFiles'), 'Steinberg', 'VSTPlugins'), J(env('ProgramFiles'), 'Common Files', 'CLAP'),
+  J(env('ProgramFiles'), 'Common Files', 'Avid', 'Audio', 'Plug-Ins'), J(env('LOCALAPPDATA'), 'Programs', 'Common', 'VST3'),
+  J(env('LOCALAPPDATA'), 'Programs', 'Common', 'CLAP'),
+];
+const PLUGIN_EXT = /\.(vst3|vst|clap|dll|aaxplugin)$/i;
+
 async function scanLeftovers(program, { mode = 'moderate', readShortcut = null } = {}) {
   const tokens = tokensFor(program);
   const pubNorm = norm(cleanPublisher(program.publisher));
@@ -312,25 +332,37 @@ async function scanLeftovers(program, { mode = 'moderate', readShortcut = null }
     J(env('LOCALAPPDATA'), 'Programs'), J(env('LOCALAPPDATA'), '..', 'LocalLow'), env('CommonProgramFiles'),
     env('CommonProgramFiles(x86)'),
   ].filter(Boolean);
-  if (mode === 'advanced') bases.push(J(env('USERPROFILE'), 'Documents'), env('USERPROFILE'));
+  const userBases = new Set();
+  if (mode === 'advanced') {
+    for (const b of [J(env('USERPROFILE'), 'Documents'), env('USERPROFILE')]) { bases.push(b); userBases.add(J(b).toLowerCase()); }
+  }
 
   for (const base of bases) {
     if (!fsx.isDir(base)) continue;
+    const userData = userBases.has(J(base).toLowerCase());
     for (const e of fsx.list(base)) {
       if (!e.dir || e.link) continue;
       const conf = confidenceOf(e.name);
-      if (conf && !isRootLike(e.path)) push({ kind: 'dir', path: e.path, confidence: conf, reason: 'name' });
+      if (conf && !isRootLike(e.path)) push({ kind: 'dir', path: e.path, confidence: userData ? 'low' : conf, reason: userData ? 'userdata' : 'name' });
       if (!pubIsBig && norm(e.name) === pubNorm) {
         const children = fsx.list(e.path).filter((c) => c.dir && !c.link);
         let matched = 0;
         for (const c of children) {
           const cc = confidenceOf(c.name);
-          if (cc) { push({ kind: 'dir', path: c.path, confidence: cc, reason: 'publisher' }); matched++; }
+          if (cc) { push({ kind: 'dir', path: c.path, confidence: userData ? 'low' : cc, reason: userData ? 'userdata' : 'publisher' }); matched++; }
         }
         if (matched && matched === children.length && fsx.list(e.path).every((c) => c.dir)) {
           push({ kind: 'dir', path: e.path, confidence: 'low', reason: 'publisher-empty' });
         }
       }
+    }
+  }
+
+  for (const dir of PLUGIN_DIRS()) {
+    if (!fsx.isDir(dir)) continue;
+    for (const e of fsx.list(dir)) {
+      if (e.link) continue;
+      if (confidenceOf(e.name.replace(PLUGIN_EXT, ''))) push({ kind: e.dir ? 'dir' : 'file', path: e.path, confidence: 'medium', reason: 'plugin', size: e.dir ? undefined : e.size });
     }
   }
 
@@ -412,6 +444,22 @@ async function scanLeftovers(program, { mode = 'moderate', readShortcut = null }
     }
   }
 
+  for (const base of ['SOFTWARE\\ASIO', 'SOFTWARE\\WOW6432Node\\ASIO']) {
+    for (const name of reg.subkeys('HKLM', base)) {
+      if (confidenceOf(name)) push({ kind: 'regkey', root: 'HKLM', path: `${base}\\${name}`, confidence: 'medium', reason: 'asio' });
+    }
+  }
+
+  if (loc) {
+    const fw = 'SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\FirewallRules';
+    for (const v of reg.values('HKLM', fw)) {
+      const m = /(?:^|\|)App=([^|]+)/i.exec(String(v.value || ''));
+      if (m && within(m[1].replace(/%([^%]+)%/g, (_, n) => env(n) || `%${n}%`), loc)) {
+        push({ kind: 'regvalue', root: 'HKLM', path: fw, name: v.name, confidence: 'medium', reason: 'firewall' });
+      }
+    }
+  }
+
   if (loc) {
     const mui = 'Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache';
     for (const v of reg.values('HKCU', mui)) {
@@ -428,7 +476,7 @@ async function scanLeftovers(program, { mode = 'moderate', readShortcut = null }
       if (file && within(file, loc)) push({ kind: 'service', name, path: file, confidence: 'medium', reason: 'service' });
     }
   }
-  if (mode === 'advanced') {
+  if (mode !== 'safe') {
     const tasksRoot = J(SYSTEM32, 'Tasks');
     const stack = [tasksRoot];
     while (stack.length) {
@@ -438,14 +486,15 @@ async function scanLeftovers(program, { mode = 'moderate', readShortcut = null }
           if (!/\\microsoft$/i.test(e.path)) stack.push(e.path);
           continue;
         }
-        let hit = !!confidenceOf(e.name);
-        if (!hit && loc && e.size < 256 * 1024) {
+        let confidence = '';
+        if (loc && e.size < 256 * 1024) {
           try {
             const xml = fs.readFileSync(e.path, 'utf16le');
-            hit = xml.toLowerCase().includes(J(loc).toLowerCase());
-          } catch { hit = false; }
+            if (xml.toLowerCase().includes(J(loc).toLowerCase())) confidence = 'medium';
+          } catch { confidence = ''; }
         }
-        if (hit) push({ kind: 'task', name: e.path.slice(tasksRoot.length).replace(/^\\/, ''), path: e.path, confidence: 'low', reason: 'task' });
+        if (!confidence && mode === 'advanced' && confidenceOf(e.name)) confidence = 'low';
+        if (confidence) push({ kind: 'task', name: e.path.slice(tasksRoot.length).replace(/^\\/, ''), path: e.path, confidence, reason: 'task' });
       }
     }
   }
@@ -466,9 +515,13 @@ async function deleteLeftovers(program, items, { trash = null } = {}) {
     const safeName = cleanName(program.name).replace(/[^\w\- ]+/g, '').slice(0, 40) || 'app';
     const stamp = now().replace(/[: ]/g, '-');
     const parts = [];
+    const exported = new Set();
     for (const [n, item] of regItems.entries()) {
+      const target = `${item.root}\\${item.path}`;
+      if (exported.has(target)) continue;
+      exported.add(target);
       const file = J(dir, `${stamp} ${safeName} ${n}.reg`);
-      const r = await run(J(SYSTEM32, 'reg.exe'), ['export', `${item.root}\\${item.path}`, file, '/y'], { timeout: 30_000 });
+      const r = await run(J(SYSTEM32, 'reg.exe'), ['export', target, file, '/y'], { timeout: 60_000 });
       if (r.code === 0) parts.push(file);
     }
     if (parts.length) {
@@ -543,6 +596,7 @@ module.exports = {
   listPrograms,
   folderSize,
   runUninstaller,
+  runningFrom,
   scanLeftovers,
   deleteLeftovers,
   splitCommand,

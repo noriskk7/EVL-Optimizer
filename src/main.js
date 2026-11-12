@@ -617,6 +617,7 @@ const handlers = {
 
   'uninstall:list': () => core.uninstaller.listPrograms(),
   'uninstall:size': (location) => core.uninstaller.folderSize(location),
+  'uninstall:running': (location) => core.uninstaller.runningFrom(location),
   'uninstall:run': async ({ id, quiet }) => {
     const program = programById(id);
     if (!program) return { ok: false, reason: 'missing' };

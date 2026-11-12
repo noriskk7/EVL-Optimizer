@@ -4,8 +4,13 @@ const fs = require('fs');
 const appx = require('./appx');
 const tweaks = require('./tweaks');
 const reg = require('./registry');
-const { J, env, SYSTEM_ROOT, SYSTEM32, run, powershell } = require('./util');
+const { J, env, SYSTEM_ROOT, SYSTEM32, dataDir, now, run, powershell } = require('./util');
 const { isElevated } = require('./win32');
+
+const CDM = 'Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager';
+const ORCH = 'SOFTWARE\\Microsoft\\WindowsUpdate\\Orchestrator\\UScheduler_Oobe';
+const RUN = 'Software\\Microsoft\\Windows\\CurrentVersion\\Run';
+const INBOX_KEY = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Appx\\AppxAllUserStore\\InboxApplications';
 
 const ITEMS = [
   { id: 'bing-apps', group: 'apps', on: true, packages: ['Microsoft.BingNews', 'Microsoft.BingWeather', 'Microsoft.BingFinance', 'Microsoft.BingSports', 'Microsoft.BingTranslator', 'Microsoft.BingFoodAndDrink', 'Microsoft.BingHealthAndFitness', 'Microsoft.BingTravel', 'Microsoft.BingSearch', 'Microsoft.News'] },
@@ -13,16 +18,16 @@ const ITEMS = [
   { id: 'solitaire', group: 'apps', on: true, packages: ['Microsoft.MicrosoftSolitaireCollection'] },
   { id: 'tips-help', group: 'apps', on: true, packages: ['Microsoft.GetHelp', 'Microsoft.Getstarted', 'Microsoft.WindowsFeedbackHub'] },
   { id: 'clipchamp', group: 'apps', on: true, packages: ['Clipchamp.Clipchamp'] },
-  { id: 'people-maps', group: 'apps', on: true, packages: ['Microsoft.People', 'Microsoft.WindowsMaps', 'Microsoft.Messaging', 'Microsoft.OneConnect', 'Microsoft.Wallet'] },
-  { id: 'todo-automate', group: 'apps', on: true, packages: ['Microsoft.Todos', 'Microsoft.PowerAutomateDesktop', 'Microsoft.Windows.DevHome'] },
+  { id: 'people-maps', group: 'apps', on: true, packages: ['Microsoft.People', 'Microsoft.WindowsMaps', 'Microsoft.Messaging', 'Microsoft.OneConnect', 'Microsoft.Wallet'], services: ['MapsBroker', 'WalletService'] },
+  { id: 'todo-automate', group: 'apps', on: true, packages: ['Microsoft.Todos', 'Microsoft.PowerAutomateDesktop', 'Microsoft.Windows.DevHome'], keys: [{ root: 'HKLM', path: `${ORCH}\\DevHomeUpdate` }] },
   { id: 'old-media', group: 'apps', on: true, packages: ['Microsoft.ZuneVideo', 'Microsoft.MixedReality.Portal', 'Microsoft.Microsoft3DViewer', 'Microsoft.MSPaint', 'Microsoft.Print3D', 'Microsoft.SkypeApp', 'Microsoft.NetworkSpeedTest'] },
   { id: 'cortana', group: 'apps', on: true, packages: ['Microsoft.549981C3F5F10'] },
-  { id: 'family', group: 'apps', on: true, packages: ['MicrosoftCorporationII.MicrosoftFamily'] },
+  { id: 'family', group: 'apps', on: true, packages: ['MicrosoftCorporationII.MicrosoftFamily'], services: ['WpcMonSvc'] },
   { id: 'sponsored-games', group: 'apps', on: true, packages: ['*CandyCrush*', 'king.com.*', '*BubbleWitch*', '*MarchofEmpires*', '*Asphalt8*', '*HiddenCity*', '*FarmVille*', '*CaesarsSlots*', '*COOKINGFEVER*', '*RoyalRevolt*', '*DisneyMagicKingdoms*', '*Minecraft*Trial*', '*SolitaireCollection*'] },
-  { id: 'sponsored-apps', group: 'apps', on: true, packages: ['*Netflix*', '*TikTok*', '*Instagram*', 'Facebook.*', '*Twitter*', '*LinkedIn*', 'AmazonVideo.PrimeVideo', '*Disney*', '*Hulu*', '*PicsArt*', '*Duolingo*', '*Flipboard*', '*Shazam*', 'AdobeSystemsIncorporated.AdobePhotoshopExpress', '*Plex*', '*SlingTV*', '*McAfee*', '*Booking*'] },
+  { id: 'sponsored-apps', group: 'apps', on: true, packages: ['*Netflix*', '*TikTok*', '*Instagram*', 'Facebook.*', '*Twitter*', '*LinkedIn*', 'AmazonVideo.PrimeVideo', '*Disney*', '*Hulu*', '*PicsArt*', '*Duolingo*', '*Flipboard*', '*Shazam*', 'AdobeSystemsIncorporated.AdobePhotoshopExpress', '*Plex*', '*SlingTV*', '*McAfee*', '*Booking*'], keys: [{ root: 'HKCU', path: `${CDM}\\Subscriptions` }, { root: 'HKCU', path: `${CDM}\\SuggestedApps` }] },
   { id: 'teams', group: 'apps', on: true, packages: ['MicrosoftTeams', 'MSTeams'] },
-  { id: 'outlook-mail', group: 'apps', on: true, packages: ['Microsoft.OutlookForWindows', 'microsoft.windowscommunicationsapps'] },
-  { id: 'onedrive', group: 'apps', on: true, special: 'onedrive' },
+  { id: 'outlook-mail', group: 'apps', on: true, packages: ['Microsoft.OutlookForWindows', 'microsoft.windowscommunicationsapps'], keys: [{ root: 'HKLM', path: `${ORCH}\\OutlookUpdate` }] },
+  { id: 'onedrive', group: 'apps', on: true, special: 'onedrive', keys: [{ root: 'HKCU', path: RUN, name: 'OneDriveSetup' }, { root: 'HKLM', path: `SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run`, name: 'OneDriveSetup' }] },
   { id: 'xbox', group: 'apps', on: true, packages: ['Microsoft.GamingApp', 'Microsoft.XboxApp', 'Microsoft.XboxGamingOverlay', 'Microsoft.XboxGameOverlay', 'Microsoft.XboxSpeechToTextOverlay', 'Microsoft.Xbox.TCUI', 'Microsoft.XboxIdentityProvider', 'Microsoft.Edge.GameAssist'] },
 
   { id: 'copilot', group: 'ai', on: true, packages: ['Microsoft.Copilot', 'Microsoft.Windows.Ai.Copilot.Provider', 'MicrosoftWindows.Client.CoPilot'], tweaks: ['copilot-off'] },
@@ -31,21 +36,21 @@ const ITEMS = [
   { id: 'ai-apps', group: 'ai', on: true, tweaks: ['ai-apps-off'] },
 
   { id: 'widgets', group: 'ads', on: true, packages: ['MicrosoftWindows.Client.WebExperience'], tweaks: ['widgets-off'] },
-  { id: 'start-ads', group: 'ads', on: true, tweaks: ['suggestions-off', 'consumer-features-off'] },
+  { id: 'start-ads', group: 'ads', on: true, tweaks: ['suggestions-off', 'consumer-features-off'], keys: [{ root: 'HKCU', path: `${CDM}\\Subscriptions` }, { root: 'HKCU', path: `${CDM}\\SuggestedApps` }] },
   { id: 'ads-id', group: 'ads', on: true, tweaks: ['ads-off'] },
   { id: 'bing-search', group: 'ads', on: true, tweaks: ['bing-search-off'] },
   { id: 'taskbar-clean', group: 'ads', on: true, tweaks: ['chat-icon-off'] },
 
   { id: 'telemetry', group: 'telemetry', on: true, tweaks: ['telemetry-min'], special: 'telemetry' },
 
-  { id: 'phone-link', group: 'optional', on: false, packages: ['Microsoft.YourPhone', 'MicrosoftWindows.CrossDevice'] },
+  { id: 'phone-link', group: 'optional', on: false, packages: ['Microsoft.YourPhone', 'MicrosoftWindows.CrossDevice'], services: ['PhoneSvc'] },
   { id: 'spotify', group: 'optional', on: false, packages: ['SpotifyAB.SpotifyMusic'] },
   { id: 'sticky-notes', group: 'optional', on: false, packages: ['Microsoft.MicrosoftStickyNotes', 'Microsoft.MicrosoftJournal', 'Microsoft.Whiteboard'] },
 ];
 
 const KEEP = ['Microsoft.WindowsNotepad'];
 
-const TELEMETRY_SERVICES = ['DiagTrack', 'dmwappushservice'];
+const TELEMETRY_SERVICES = ['DiagTrack', 'dmwappushservice', 'wisvc', 'RetailDemo'];
 const TELEMETRY_TASKS = [
   '\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser',
   '\\Microsoft\\Windows\\Application Experience\\ProgramDataUpdater',
@@ -85,7 +90,14 @@ async function status() {
         return v && v.value !== 4;
       });
     }
-    const needsAdmin = lockedTweaks.length > 0 || ['onedrive', 'telemetry', 'recall'].includes(item.special);
+    const keyPending = (item.keys || []).some((k) => (k.name ? !!reg.read(k.root, k.path, k.name) : reg.exists(k.root, k.path)));
+    const servicePending = (item.services || []).some((s) => {
+      const v = reg.read('HKLM', `SYSTEM\\CurrentControlSet\\Services\\${s}`, 'Start');
+      return !!v && v.value !== 4;
+    });
+    specialPending = specialPending || keyPending || servicePending;
+    const needsAdmin = lockedTweaks.length > 0 || ['onedrive', 'telemetry', 'recall'].includes(item.special)
+      || (item.keys || []).some((k) => k.root === 'HKLM') || (item.services || []).length > 0;
     return {
       id: item.id,
       group: item.group,
@@ -146,9 +158,58 @@ async function runSpecial(kind, onProgress) {
   return { ok: steps.every((s) => s.ok), steps };
 }
 
+async function cleanupItems(chosen, report, onProgress) {
+  const steps = report.cleanup;
+  if (!isElevated()) return;
+  onProgress({ phase: 'cleanup' });
+
+  const targets = [];
+  const seen = new Set();
+  const add = (t) => {
+    const id = `${t.root}\\${t.path}|${t.name || ''}`.toLowerCase();
+    if (!seen.has(id)) { seen.add(id); targets.push(t); }
+  };
+  for (const item of chosen) for (const k of item.keys || []) add(k);
+
+  const gone = new Set((report.removed || []).map((n) => String(n).toLowerCase()));
+  const still = new Set((report.remaining || []).map((n) => String(n).toLowerCase()));
+  for (const sub of reg.subkeys('HKLM', INBOX_KEY)) {
+    const name = sub.split('_')[0].toLowerCase();
+    if (gone.has(name) && !still.has(name)) add({ root: 'HKLM', path: `${INBOX_KEY}\\${sub}` });
+  }
+
+  const dir = J(dataDir(), 'backups');
+  try { fs.mkdirSync(dir, { recursive: true }); } catch {  }
+  const stamp = now().replace(/[: ]/g, '-');
+  let n = 0;
+  const exported = new Set();
+  for (const t of targets) {
+    const present = t.name ? !!reg.read(t.root, t.path, t.name) : reg.exists(t.root, t.path);
+    if (!present) continue;
+    const full = `${t.root}\\${t.path}`;
+    if (!exported.has(full)) {
+      exported.add(full);
+      await run(J(SYSTEM32, 'reg.exe'), ['export', full, J(dir, `${stamp} debloat ${++n}.reg`), '/y'], { timeout: 60_000 });
+    }
+    const ok = t.name ? reg.deleteValue(t.root, t.path, t.name) : reg.deleteTree(t.root, t.path);
+    const stillThere = t.name ? !!reg.read(t.root, t.path, t.name) : reg.exists(t.root, t.path);
+    steps.push({ key: t.name ? 'log.deb.value' : 'log.deb.key', vars: { name: t.name ? `${full}\\${t.name}` : full }, ok: ok && !stillThere });
+  }
+
+  for (const name of [...new Set(chosen.flatMap((i) => i.services || []))]) {
+    const path = `SYSTEM\\CurrentControlSet\\Services\\${name}`;
+    const start = reg.read('HKLM', path, 'Start');
+    if (!start || start.value === 4) continue;
+    tweaks.setValue('HKLM', path, 'Start', reg.REG_DWORD, 4, [`Serviço: ${name}`, `Service: ${name}`]);
+    await run(J(SYSTEM32, 'sc.exe'), ['stop', name], { timeout: 30_000 });
+    const after = reg.read('HKLM', path, 'Start');
+    steps.push({ key: 'log.deb.service', vars: { name }, ok: !!after && after.value === 4 });
+  }
+}
+
 async function runDebloat(ids, { onProgress = () => {} } = {}) {
   const chosen = ITEMS.filter((i) => ids.includes(i.id));
-  const report = { removed: [], failed: [], remaining: [], tweaks: [], specials: [] };
+  const report = { removed: [], failed: [], remaining: [], tweaks: [], specials: [], cleanup: [] };
 
   const packages = [...new Set(chosen.flatMap((i) => i.packages || []))];
   if (packages.length) {
@@ -172,6 +233,7 @@ async function runDebloat(ids, { onProgress = () => {} } = {}) {
     const r = await runSpecial(item.special, onProgress);
     report.specials.push({ id: item.id, ok: r.ok, steps: r.steps });
   }
+  await cleanupItems(chosen, report, onProgress);
   tweaks.notifySettingsChanged();
   return report;
 }

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const { J, env, SYSTEM_ROOT, run, SYSTEM32 } = require('./util');
 const fsx = require('./fsx');
+const sys = require('./sysinfo');
 const reg = require('./registry');
 const { fn, isElevated, driveRoots, diskSpace } = require('./win32');
 
@@ -40,7 +41,7 @@ const subdirs = (dir) => {
 const nameOf = (p) => p.slice(p.lastIndexOf('\\') + 1);
 
 class Targets {
-  constructor() { this.items = []; }
+  constructor() { this.items = []; this.blocked = []; }
   add(path, mode = CONTENTS) { if (isAbs(path)) this.items.push({ path: J(path), mode }); }
   match(path, mode, prefix = '', suffix = '') { if (isAbs(path)) this.items.push({ path: J(path), mode, prefix, suffix }); }
   special(mode, extra = {}) { this.items.push({ path: '', mode, ...extra }); }
@@ -164,6 +165,124 @@ function findDirs(roots, { maxDepth, match, skip = () => false, owned = new Set(
   return found.sort((a, b) => a.localeCompare(b));
 }
 
+const MUSIC_NAMES = new Set(['cache', 'caches', 'code cache', 'gpucache', 'dawncache', 'dawngraphitecache', 'dawnwebgpucache',
+  'shadercache', 'grshadercache', 'webcache', 'htmlcache', 'cacheddata', 'media cache', 'http cache', 'image cache',
+  'logs', 'log', 'crashdumps', 'crash dumps', 'crashpad', 'minidumps', 'crash reports', 'crashreports', 'crash-reports', 'dumps',
+  'vst cache', 'vst3 cache', 'vstcache', 'vst3cache', 'plugin cache', 'plug-in cache', 'plugincache', 'plugin-cache', 'plugin-db',
+  'plugin scan cache', 'scan cache']);
+const CREATIVE_NAMES = new Set([...MUSIC_NAMES, 'media cache files', 'peak files', 'cacheclip', 'crashes', 'team projects cache']);
+
+const VENDOR_NEVER = new Set(['projects', 'project', 'backup', 'backups', 'autosave', 'auto save', 'auto-save', 'recovery',
+  'crash recovery', 'crashrecovery', 'recordings', 'recorded', 'user library', 'library', 'libraries', 'samples', 'sample',
+  'sounds', 'soundpacks', 'soundbanks', 'instruments', 'presets', 'preset', 'patches', 'templates', 'template', 'licenses',
+  'license', 'licence', 'authorization', 'authorisation', 'activation', 'content', 'user content', 'steam', 'extensions',
+  'plug-ins', 'plugins', 'vstplugins', 'scenes', 'profiles', 'basic', 'workspaces', 'settings', 'snippets', 'documents',
+  'exports', 'bounces', 'renders', 'resolve disk database', 'proxies', 'proxy',
+  'catalogs', 'catalog', 'slstore', 'slcache', 'oobe', 'sentinel', 'adobegcclient', 'cep', 'uxp']);
+
+const DAWS = [
+  { n: 'Ableton Live', d: ['Ableton'], p: /^ableton live/, add: (c) => [J(c.local, 'Ableton', 'Live Reports', 'Usage'), J(c.local, 'Ableton', 'Live Reports', 'Crash')] },
+  { n: 'Cubase / Nuendo / Steinberg', d: ['Steinberg'], p: /^(cubase|nuendo|wavelab|halion|dorico|spectralayers|groove agent|steinberg)/ },
+  { n: 'FL Studio', d: ['Image-Line'], p: /^(fl64|fl|flstudio|fl studio|fl32)$/ },
+  { n: 'Pro Tools / Sibelius', d: ['Avid'], p: /^(pro ?tools|sibelius|avid)/ },
+  { n: 'Studio One', d: ['PreSonus'], p: /^(studio one|presonus)/ },
+  { n: 'REAPER', d: ['REAPER', 'Cockos'], p: /^reaper/, files: (c) => [[J(c.roaming, 'REAPER'), 'reaper-vstplugins', '.ini'], [J(c.roaming, 'REAPER'), 'reaper-clap', '.ini'], [J(c.roaming, 'REAPER'), 'reaper-dxplugins', '.ini']] },
+  { n: 'Guitar Pro / Finale', d: ['Arobas Music', 'MakeMusic', 'Finale'], p: /^(guitar pro|finale|makemusic)/ },
+  { n: 'Bitwig Studio', d: ['Bitwig', 'Bitwig Studio'], p: /^bitwig/ },
+  { n: 'Cakewalk / BandLab', d: ['Cakewalk', 'BandLab', 'BandLab Assistant'], p: /^(cakewalk|sonar|bandlab)/ },
+  { n: 'Reason', d: ['Propellerhead Software', 'Propellerhead', 'Reason Studios'], p: /^(reason|propellerhead)/ },
+  { n: 'MAGIX / Samplitude', d: ['MAGIX'], p: /^(samplitude|sequoia|music ?maker|magix)/ },
+  { n: 'Waveform', d: ['Tracktion'], p: /^(waveform|tracktion)/ },
+  { n: 'n-Track', d: ['n-Track'], p: /^n-?track/ },
+  { n: 'Mixcraft', d: ['Acoustica'], p: /^(mixcraft|acoustica)/ },
+  { n: 'Ardour', d: ['Ardour', 'ardour6', 'ardour7', 'ardour8', 'ardour9'], p: /^ardour/ },
+  { n: 'LMMS', d: ['lmms', 'LMMS'], p: /^lmms/ },
+  { n: 'MOTU', d: ['MOTU'], p: /^(digital performer|motu)/ },
+  { n: 'Mixbus', d: ['Harrison', 'Mixbus'], p: /^(mixbus|harrison)/ },
+  { n: 'MuseScore', d: ['MuseScore'], p: /^musescore/ },
+  { n: 'Serato', d: ['Serato'], p: /^serato/ },
+  { n: 'rekordbox', d: ['Pioneer'], p: /^(rekordbox|pioneer)/ },
+  { n: 'VirtualDJ', d: ['VirtualDJ'], p: /^virtualdj/ },
+  { n: 'Cycling 74 Max', d: ['Cycling \'74'], p: /^max$/ },
+];
+
+const PLUGINS = [
+  { n: 'Native Instruments', d: ['Native Instruments'], p: /^(native access|kontakt|maschine|komplete|reaktor|massive|guitar rig|battery|traktor|service center|native instruments)/ },
+  { n: 'Waves', d: ['Waves', 'Waves Audio', 'Waves Central', 'Waves Audio Ltd'], p: /^waves/ },
+  { n: 'iZotope', d: ['iZotope'], p: /^(izotope|product portal|ozone|neutron|nectar)/ },
+  { n: 'Arturia', d: ['Arturia'], p: /^arturia/ },
+  { n: 'Plugin Alliance', d: ['Plugin Alliance'], p: /^(plugin alliance|installation manager)/ },
+  { n: 'IK Multimedia', d: ['IK Multimedia'], p: /^(amplitube|t-racks|sampletank|ik product manager|ik multimedia)/ },
+  { n: 'Softube', d: ['Softube'], p: /^softube/ },
+  { n: 'XLN Audio', d: ['XLN Audio', 'XLN Online Installer'], p: /^(xln|addictive|xo$)/ },
+  { n: 'UJAM', d: ['UJAM'], p: /^ujam/ },
+  { n: 'Slate Digital', d: ['Slate Digital'], p: /^slate/ },
+  { n: 'Universal Audio', d: ['Universal Audio', 'UA Connect'], p: /^(ua connect|universal audio|uad)/ },
+  { n: 'Spitfire Audio', d: ['Spitfire Audio'], p: /^spitfire/ },
+  { n: 'Orchestral Tools', d: ['Orchestral Tools'], p: /^orchestral/ },
+  { n: 'Splice', d: ['Splice'], p: /^splice/ },
+  { n: 'LANDR', d: ['LANDR', 'LANDR Studio'], p: /^landr/ },
+  { n: 'Loopcloud', d: ['Loopmasters', 'Loopcloud'], p: /^loopcloud/ },
+  { n: 'Focusrite', d: ['Focusrite', 'Focusrite Control'], p: /^focusrite/ },
+  { n: 'Positive Grid', d: ['Positive Grid'], p: /^(positive grid|bias)/ },
+  { n: 'Celemony / Antares', d: ['Celemony', 'Antares', 'Antares Audio Technologies'], p: /^(melodyne|celemony|auto-tune|antares)/ },
+  { n: 'Soundtoys / FabFilter', d: ['Soundtoys', 'FabFilter'], p: /^(soundtoys|fabfilter)/ },
+  { n: 'Kilohearts / Cableguys / Xfer', d: ['Kilohearts', 'Cableguys', 'Xfer', 'Xfer Records'], p: /^(kilohearts|cableguys|xfer)/ },
+  { n: 'Toontrack / EastWest / Heavyocity', d: ['Toontrack', 'EastWest', 'East West', 'Heavyocity', 'Embertone', 'Best Service', 'Vienna'], p: /^(toontrack|eastwest|east west|heavyocity|embertone|best service|vienna)/ },
+  { n: 'Korg / Roland / Yamaha / Akai / Novation / M-Audio', d: ['KORG', 'Korg', 'Roland', 'Roland Cloud', 'Roland Cloud Manager', 'Yamaha', 'Akai Pro', 'Akai', 'Novation', 'M-Audio', 'Moog Music', 'Teenage Engineering', 'Behringer', 'Mackie'], p: /^(korg|roland|yamaha|akai|novation|m-audio|moog|behringer|mackie)/ },
+  { n: 'Cherry Audio / Valhalla / Plugin Boutique', d: ['Cherry Audio', 'Audiothing', 'Valhalla DSP', 'Klanghelm', 'Plugin Boutique', 'Surge Synth Team', 'Surge', 'Vital'], p: /^(cherry audio|valhalla|plugin boutique|surge|vital)/ },
+  { n: 'Neural DSP / Overloud / Voxengo / Melda', d: ['Neural DSP', 'Overloud', 'Voxengo', 'MeldaProduction', 'Sonible', 'Eventide', 'u-he', 'Tone2'], p: /^(neural dsp|overloud|voxengo|melda|sonible|eventide|u-he|tone2)/ },
+];
+
+const CREATIVE = [
+  { n: 'Adobe', d: ['Adobe'], p: /^(adobe|premiere|afterfx|after effects|audition|photoshop|illustrator|indesign|animate|media encoder|lightroom|creative cloud|acrobat|bridge)/ },
+  { n: 'Blender', d: ['Blender Foundation'], p: /^blender/ },
+  { n: 'DaVinci Resolve', d: ['Blackmagic Design'], p: /^(resolve|davinci|blackmagic)/ },
+  { n: 'Unity', d: ['Unity', 'Unity Hub', 'UnityHub'], p: /^unity/ },
+  { n: 'Maxon / Autodesk', d: ['Maxon', 'Autodesk'], p: /^(cinema|maxon|redshift|autodesk|3dsmax|maya)/ },
+  { n: 'OBS Studio', d: ['obs-studio'], p: /^obs/ },
+  { n: 'Streamlabs', d: ['slobs-client', 'Streamlabs Desktop', 'Streamlabs'], p: /^streamlabs/ },
+  { n: 'Elgato', d: ['Elgato'], p: /^(elgato|wave link|stream deck|4k capture)/ },
+  { n: 'vMix', d: ['vMix'], p: /^vmix/ },
+];
+
+const HARDWARE = [
+  { n: 'NVIDIA', d: ['NVIDIA Corporation', 'NVIDIA'], p: /^(nvidia|nvcontainer|geforce)/ },
+  { n: 'Razer', d: ['Razer', 'Razer Synapse 3', 'Razer Synapse'], p: /^razer/ },
+  { n: 'Logitech', d: ['LogiOptionsPlus', 'Logitech', 'LGHUB', 'Logi'], p: /^(logi|lghub)/ },
+  { n: 'Corsair', d: ['Corsair', 'iCUE'], p: /^(icue|corsair)/ },
+  { n: 'SteelSeries', d: ['SteelSeries', 'SteelSeries GG'], p: /^steelseries/ },
+  { n: 'ASUS', d: ['ASUS', 'Armoury Crate'], p: /^(asus|armoury)/ },
+  { n: 'MSI', d: ['MSI', 'MSI Center'], p: /^msi/ },
+  { n: 'Overwolf', d: ['Overwolf'], p: /^overwolf/ },
+  { n: 'CurseForge', d: ['CurseForge', 'curseforge'], p: /^curseforge/ },
+];
+
+const VENDOR_DIRS = new Set([...DAWS, ...PLUGINS, ...CREATIVE, ...HARDWARE].flatMap((v) => v.d).map((d) => d.toLowerCase()));
+
+const procName = (n) => String(n || '').toLowerCase().replace(/\.exe$/, '');
+function runningProcs() {
+  try { return sys.processes().map((p) => procName(p.name)); } catch { return []; }
+}
+const isOpen = (vendor, running) => !!vendor.p && running.some((n) => vendor.p.test(n));
+
+function vendorCaches(t, vendors, names, running, elevated) {
+  const c = ctxPaths();
+  const bases = [c.roaming, c.local, elevated ? c.programData : ''].filter(Boolean);
+  for (const v of vendors) {
+    if (isOpen(v, running)) { t.blocked.push(v.n); continue; }
+    for (const base of bases) {
+      for (const dir of v.d) {
+        const root = J(base, dir);
+        if (!fsx.isDir(root)) continue;
+        for (const cache of findDirs([root], { maxDepth: 5, match: (name) => names.has(name), skip: (name) => VENDOR_NEVER.has(name) })) t.add(cache);
+      }
+    }
+    if (v.add) for (const extra of v.add(c)) t.add(extra);
+    if (v.files) for (const [dir, prefix, suffix] of v.files(c)) t.match(dir, MATCH_FILES, prefix, suffix);
+  }
+}
+
 const CATALOG = [
   { id: 'user-temp', group: 'system', risk: 0, admin: false },
   { id: 'thumbnail-cache', group: 'system', risk: 0, admin: false },
@@ -181,8 +300,13 @@ const CATALOG = [
   { id: 'fivem-cache', group: 'games', risk: 1, admin: false },
   { id: 'chat-app-cache', group: 'apps', risk: 0, admin: false },
   { id: 'media-app-cache', group: 'apps', risk: 0, admin: false },
+  { id: 'productivity-app-cache', group: 'apps', risk: 0, admin: false },
   { id: 'office-cache', group: 'apps', risk: 1, admin: false },
   { id: 'app-cache', group: 'apps', risk: 1, admin: false },
+  { id: 'daw-cache', group: 'music', risk: 1, admin: false },
+  { id: 'plugin-cache', group: 'music', risk: 1, admin: false },
+  { id: 'creative-cache', group: 'creative', risk: 1, admin: false },
+  { id: 'hardware-app-cache', group: 'apps', risk: 1, admin: false },
   { id: 'developer-cache', group: 'dev', risk: 0, admin: false },
   { id: 'windows-temp', group: 'windows', risk: 0, admin: true },
   { id: 'windows-update-cache', group: 'windows', risk: 1, admin: true },
@@ -344,6 +468,7 @@ function buildTargets(id, elevated) {
       }
       t.add(J(local, 'CrashReportClient'));
       t.add(J(local, 'UnrealEngine', 'Common', 'DerivedDataCache'));
+      for (const sub of ['logs', 'crash-reports', 'webcache2']) t.add(J(roaming, '.minecraft', sub));
       break;
 
     case 'fivem-cache':
@@ -355,6 +480,9 @@ function buildTargets(id, elevated) {
       t.add(J(roaming, 'Microsoft', 'Teams', 'Service Worker', 'CacheStorage'));
       electronApp(t, J(roaming, 'Telegram Desktop', 'tdata', 'user_data'));
       t.add(J(roaming, 'Telegram Desktop', 'tdata', 'emoji'));
+      for (const app of ['Signal', 'Element', 'Viber', 'Skype', 'WhatsApp', 'Guilded', 'Mattermost', 'Rocket.Chat', 'Wire']) electronApp(t, J(roaming, app));
+      t.add(J(roaming, 'Zoom', 'logs'));
+      t.add(J(local, 'Zoom', 'logs'));
       break;
 
     case 'media-app-cache':
@@ -362,6 +490,38 @@ function buildTargets(id, elevated) {
       t.add(J(local, 'Spotify', 'Browser', 'Cache'));
       t.add(J(roaming, 'Spotify', 'Data'));
       t.add(J(local, 'Packages', 'SpotifyAB.SpotifyMusic_zpdnekdrzrea0', 'LocalCache'));
+      for (const app of ['deezer-desktop', 'TIDAL']) electronApp(t, J(roaming, app));
+      t.add(J(roaming, 'vlc', 'art'));
+      break;
+
+    case 'productivity-app-cache':
+      for (const app of ['Notion', 'obsidian', 'Figma', 'Postman', 'Linear', 'Trello', 'Todoist', 'Evernote', 'Insomnia', 'GitHub Desktop',
+        'joplin-desktop', 'logseq', 'Ferdium', 'Franz', 'Rambox', 'heroic', 'itch']) {
+        electronApp(t, J(roaming, app));
+      }
+      t.add(J(local, 'Microsoft', 'OneDrive', 'logs'));
+      t.add(J(local, 'Google', 'DriveFS', 'Logs'));
+      t.add(J(local, 'Dropbox', 'logs'));
+      break;
+
+    case 'daw-cache':
+      vendorCaches(t, DAWS, MUSIC_NAMES, runningProcs(), elevated);
+      break;
+
+    case 'plugin-cache': {
+      const running = runningProcs();
+      const open = DAWS.filter((v) => isOpen(v, running));
+      if (open.length) { for (const v of open) t.blocked.push(v.n); break; }
+      vendorCaches(t, PLUGINS, MUSIC_NAMES, running, elevated);
+      break;
+    }
+
+    case 'creative-cache':
+      vendorCaches(t, CREATIVE, CREATIVE_NAMES, runningProcs(), elevated);
+      break;
+
+    case 'hardware-app-cache':
+      vendorCaches(t, HARDWARE, MUSIC_NAMES, runningProcs(), elevated);
       break;
 
     case 'office-cache':
@@ -383,7 +543,7 @@ function buildTargets(id, elevated) {
         maxDepth: 6,
         owned,
         match: (name) => APP_CACHE_NAMES.has(name),
-        skip: (name) => APP_CACHE_SKIP.has(name),
+        skip: (name) => APP_CACHE_SKIP.has(name) || VENDOR_DIRS.has(name),
       })) t.add(cache);
       break;
     }
@@ -476,7 +636,9 @@ function buildTargets(id, elevated) {
     default:
       break;
   }
-  return t.unique();
+  const out = t.unique();
+  out.blocked = t.blocked;
+  return out;
 }
 
 const path = require('path');
@@ -541,10 +703,12 @@ async function scan(ids, { onProgress = () => {}, cancelled = () => false } = {}
     const totals = { bytes: 0, files: 0 };
     let available = true;
     let measurable = true;
+    let blocked = [];
     if (meta.admin && !elevated) {
       available = false;
     } else {
       const targets = buildTargets(id, elevated);
+      blocked = targets.blocked || [];
       for (const target of targets) {
         if (cancelled()) break;
         if (target.mode === RECYCLE) {
@@ -558,7 +722,7 @@ async function scan(ids, { onProgress = () => {}, cancelled = () => false } = {}
         }
       }
     }
-    result.entries.push({ id, bytes: totals.bytes, files: totals.files, available, measurable });
+    result.entries.push({ id, bytes: totals.bytes, files: totals.files, available, measurable, blocked });
     result.totalBytes += totals.bytes;
     result.totalFiles += totals.files;
   }
@@ -576,7 +740,9 @@ async function clean(ids, { onProgress = () => {}, cancelled = () => false } = {
     onProgress({ id, index: i, total: list.length });
     if (meta.admin && !elevated) { result.notes.push({ id, note: 'admin' }); continue; }
     const before = { bytes: result.bytes, files: result.files, dirs: result.directories, skipped: result.skipped, failures: result.failures };
-    for (const target of buildTargets(id, elevated)) {
+    const targets = buildTargets(id, elevated);
+    if (targets.blocked && targets.blocked.length) result.notes.push({ id, note: 'running', detail: targets.blocked.join(', ') });
+    for (const target of targets) {
       if (cancelled()) { result.cancelled = true; break; }
       if (target.mode === RECYCLE) {
         const rb = recycleBin();

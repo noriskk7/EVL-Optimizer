@@ -47,7 +47,7 @@ function clean(result, after) {
     const status = p.bytes > 0 || leftBytes === 0 ? 'ok' : 'skip';
     rows.push(R('log.clean.cat', { catKey: `cat.${id}`, freedBytes: p.bytes, files: p.files, skipped: p.skipped, leftBytes }, status));
   }
-  for (const n of result.notes || []) rows.push(R(`log.clean.note.${n.note}`, { catKey: `cat.${n.id}` }, 'skip'));
+  for (const n of result.notes || []) rows.push(R(`log.clean.note.${n.note}`, { catKey: `cat.${n.id}`, apps: n.detail || '' }, 'skip'));
   return activity.add({
     kind: 'clean',
     ok: !result.cancelled,
@@ -83,6 +83,7 @@ function debloat(report) {
     if (s.reason === 'admin') rows.push(R('log.adminNeeded', { itemKey: `deb.item.${s.id}` }, 'skip'));
     for (const step of s.steps || []) rows.push(R(step.key, step.vars, st(step.ok)));
   }
+  for (const step of report.cleanup || []) rows.push(R(step.key, step.vars, st(step.ok)));
   const tweaksOk = (report.tweaks || []).filter((t) => t.ok).length;
   return activity.add({
     kind: 'debloat',

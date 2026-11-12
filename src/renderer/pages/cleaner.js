@@ -2,8 +2,8 @@
 
 (function () {
   const { h, icon, clear } = UI;
-  const GROUP_ICON = { system: 'windows', gpu: 'gpu', browsers: 'globe', games: 'gamepad', apps: 'grid', dev: 'cpu', windows: 'shield' };
-  const GROUPS = ['system', 'browsers', 'games', 'apps', 'gpu', 'dev', 'windows'];
+  const GROUP_ICON = { system: 'windows', gpu: 'gpu', browsers: 'globe', games: 'gamepad', apps: 'grid', music: 'music', creative: 'sparkles', dev: 'cpu', windows: 'shield' };
+  const GROUPS = ['system', 'browsers', 'games', 'apps', 'music', 'creative', 'gpu', 'dev', 'windows'];
 
   Pages.cleaner = {
     render(el) {
@@ -110,7 +110,8 @@
         const row = h('tr', { class: `clickable${c.locked ? ' locked' : ''}` },
           h('td', { class: 'ck' }, check),
           h('td', null, h('div', { class: 'row', style: { gap: '12px' } }, h('span', { class: 'ico' }, icon(GROUP_ICON[c.group] || 'file')),
-            h('div', { style: { minWidth: 0 } }, h('div', { class: 'strong' }, t(`cat.${c.id}`)), h('div', { class: 'desc' }, t(`cat.${c.id}.d`))))),
+            h('div', { style: { minWidth: 0 } }, h('div', { class: 'strong' }, t(`cat.${c.id}`)), h('div', { class: 'desc' }, t(`cat.${c.id}.d`)),
+              e && e.blocked && e.blocked.length ? h('div', { class: 'desc', style: { color: 'var(--warn)' } }, t('clean.blocked', { apps: e.blocked.join(', ') })) : null))),
           h('td', null, risk),
           h('td', { class: `num${files && e.files ? '' : ' zero'}` }, files || '—'),
           h('td', { class: `num ${e && e.bytes ? 'strong-num' : 'zero'}` }, size));

@@ -10,9 +10,9 @@ Portable, one `.exe`, in English, Português and Español.
 
 ## ✨ What it does
 - 🧠 **Memory**: frees RAM from idle apps only (never the one in focus, games, audio or VMs) and measures the result again 8 seconds later.
-- 🧹 **Cleaner**: 30 categories of temp files, caches and Windows leftovers. Cookies, passwords and personal files are left alone.
-- 🗑️ **Uninstaller**: removes the app and hunts down its leftovers, with a `.reg` backup of every key it deletes.
-- 🎈 **Debloat**: removes useless Windows apps, never the Store or Windows Security.
+- 🧹 **Cleaner**: 35 categories: temp files, caches, Windows leftovers and the cache of **DAWs** (Ableton, FL Studio, Cubase, Pro Tools, REAPER, Bitwig...), VST plugin scans, Adobe, DaVinci, OBS and more. Projects, backups, libraries and session recovery are never touched, and apps that are open are skipped.
+- 🗑️ **Uninstaller**: removes the app and hunts down its leftovers (folders, registry, shortcuts, services, tasks, firewall rules, ASIO drivers, VST/CLAP/AAX plugins). Warns if the app is still open, never pre-selects anything in your Documents, and backs up every registry key as `.reg`.
+- 🎈 **Debloat**: removes useless Windows apps, the registry keys Windows uses to bring them back (with a `.reg` backup) and the services only they use. Never the Store or Windows Security.
 - 📊 **Benchmark**: CPU, RAM, disk and GPU, with a score and a verdict.
 - 🎮 **Game Mode**: notices when a game opens, tunes the PC, and undoes everything when it closes.
 - ⚙️ **Tweaks, startup and processes**: reversible tweaks, startup manager and a live process list.

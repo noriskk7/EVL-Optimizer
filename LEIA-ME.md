@@ -10,9 +10,9 @@ Portátil, um único `.exe`, em Português, English e Español.
 
 ## ✨ O que ele faz
 - 🧠 **Memória**: libera RAM só de apps parados (nunca o app em foco, jogos, áudio ou VMs) e mede o resultado de novo 8 segundos depois.
-- 🧹 **Limpeza**: 30 categorias de temporários, caches e restos do Windows. Cookies, senhas e arquivos pessoais ficam intocados.
-- 🗑️ **Desinstalador**: remove o app e caça os restos, com backup `.reg` de cada chave apagada.
-- 🎈 **Apps inúteis**: remove os apps desnecessários do Windows, nunca a Store nem a Segurança do Windows.
+- 🧹 **Limpeza**: 35 categorias: temporários, caches, restos do Windows e o cache de **DAWs** (Ableton, FL Studio, Cubase, Pro Tools, REAPER, Bitwig...), varredura de plugins VST, Adobe, DaVinci, OBS e mais. Projetos, backups, bibliotecas e recuperação de sessão nunca são tocados, e apps abertos são pulados.
+- 🗑️ **Desinstalador**: remove o app e caça os restos (pastas, registro, atalhos, serviços, tarefas, regras do firewall, drivers ASIO, plugins VST/CLAP/AAX). Avisa se o app ainda está aberto, nunca marca nada em Documentos por padrão e faz backup `.reg` de cada chave.
+- 🎈 **Apps inúteis**: remove os apps desnecessários do Windows, as chaves de registro que o Windows usa para trazê-los de volta (com backup `.reg`) e os serviços que só eles usam. Nunca a Store nem a Segurança do Windows.
 - 📊 **Benchmark**: CPU, RAM, disco e GPU, com nota e veredito.
 - 🎮 **Modo Jogo**: percebe quando um jogo abre, prepara o PC e desfaz tudo quando ele fecha.
 - ⚙️ **Ajustes, inicialização e processos**: ajustes reversíveis, gerenciador de inicialização e lista de processos ao vivo.
