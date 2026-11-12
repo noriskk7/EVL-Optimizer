@@ -25,6 +25,10 @@ const DEFAULTS = {
   benchHistory: [],
   benchStress: true,
   freeHistory: [],
+  updateCheck: true,
+  updateLast: 0,
+  updateLatest: '',
+  updateIgnored: '',
 };
 
 let cache = null;

@@ -1,7 +1,7 @@
 {
   "name": "evl-optimizer",
   "productName": "EVL Optimizer",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "EVL Optimizer",
   "main": "src/main.js",
   "author": "EVL (https://evlcorp.lol)",

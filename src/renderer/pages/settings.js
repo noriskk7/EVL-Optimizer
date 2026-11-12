@@ -44,7 +44,8 @@
         row(t('set.tray'), t('set.tray.d'), UI.sw(cfg.trayOnClose, (v) => save({ trayOnClose: v }))),
         row(t('set.startup'), t('set.startup.d'), UI.sw(cfg.startWithWindows, (v) => save({ startWithWindows: v }), !info.elevated && !cfg.startWithWindows),
           !info.elevated ? h('span', { class: 'pill' }, icon('lock'), t('common.adminRequired')) : null),
-        row(t('set.recycle'), t('set.recycle.d'), UI.sw(cfg.recycleLeftovers, (v) => save({ recycleLeftovers: v })))));
+        row(t('set.recycle'), t('set.recycle.d'), UI.sw(cfg.recycleLeftovers, (v) => save({ recycleLeftovers: v }))),
+        row(t('set.update'), t('set.update.d'), UI.sw(cfg.updateCheck, (v) => save({ updateCheck: v })))));
     },
 
     appearance() {

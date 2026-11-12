@@ -9,7 +9,9 @@ Portable, one `.exe`, in English, Português and Español.
 
 > 💸 **100% free.** If you paid for it, you were scammed. Official site: [evlcorp.lol](https://evlcorp.lol)
 >
-> 🔓 **Open and auditable code.** Own license: free for personal use and small businesses. No telemetry, no network calls.
+> 🔓 **Open and auditable code.** Own license: free for personal use and small businesses.
+>
+> 🔒 No telemetry. The only network request is an optional update check, once a day (see [Updates](#-updates)).
 
 ---
 
@@ -57,7 +59,13 @@ Portable, one `.exe`, in English, Português and Español.
 
 Transparency. The app asks for **administrator rights**, edits the registry, removes apps and deletes files, so you should be able to read exactly what it does.
 
-It has **no telemetry and makes no network calls**. The only link is a button that opens evlcorp.lol in your browser.
+It has **no telemetry**. The only network request is the optional update check, and links open [evlcorp.lol](https://evlcorp.lol) in your browser.
+
+## 🔄 Updates
+
+- 📅 Once a day, the app asks GitHub for the latest version number and shows a banner on the Home screen if there is a new one
+- 🔒 No data is sent, and **nothing is downloaded or installed by itself**: the banner opens the download page on [evlcorp.lol](https://evlcorp.lol)
+- ⚙️ Turn it off in **Settings → Notify about new versions**
 
 ## 🗂️ Layout
 

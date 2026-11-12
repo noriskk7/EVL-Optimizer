@@ -53,6 +53,7 @@
       this.ctx = {};
       this.hist = { cpu: [], ram: [], gpu: [], disk: [] };
       App.adminBanner(el);
+      App.updateBanner(el);
       App.pageHead(el, t('home.title'), t('home.subtitle'));
 
       this.ring = UI.ring(148, 12);

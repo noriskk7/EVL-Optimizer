@@ -250,6 +250,8 @@
     'set.tray': 'Fechar para a bandeja', 'set.tray.d': 'A janela fecha de verdade e o EVL continua na bandeja usando cerca de 20 MB.',
     'set.startup': 'Iniciar com o Windows', 'set.startup.d': 'Abre na bandeja ao entrar no Windows.',
     'set.recycle': 'Restos de programas para a Lixeira', 'set.recycle.d': 'Pastas apagadas pelo desinstalador vão para a Lixeira em vez de sumir direto.',
+    'set.update': 'Avisar sobre novas versões', 'set.update.d': 'Uma consulta por dia ao GitHub para saber a versão mais recente. Nada é enviado além de um pedido comum, e o app nunca baixa nada sozinho.',
+    'upd.text': 'Versão {v} disponível', 'upd.get': 'Baixar', 'upd.ignore': 'Ignorar',
     'set.about': 'Sobre', 'set.version': 'Versão', 'set.data': 'Pasta de dados', 'set.saved': 'Preferência salva',
     'set.startupFailed': 'Não deu para criar a tarefa de inicialização.',
 
@@ -768,6 +770,8 @@
     'set.tray': 'Close to the tray', 'set.tray.d': 'The window really closes and EVL stays in the tray using about 20 MB.',
     'set.startup': 'Start with Windows', 'set.startup.d': 'Opens in the tray when you sign in to Windows.',
     'set.recycle': 'Program leftovers to the Recycle Bin', 'set.recycle.d': 'Folders deleted by the uninstaller go to the Recycle Bin instead of disappearing.',
+    'set.update': 'Notify about new versions', 'set.update.d': 'One check a day against GitHub for the latest version. Nothing is sent beyond a plain request, and the app never downloads anything by itself.',
+    'upd.text': 'Version {v} is available', 'upd.get': 'Download', 'upd.ignore': 'Dismiss',
     'set.about': 'About', 'set.version': 'Version', 'set.data': 'Data folder', 'set.saved': 'Preference saved',
     'set.startupFailed': 'Could not create the startup task.',
 

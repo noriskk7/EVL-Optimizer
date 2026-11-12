@@ -9,7 +9,9 @@ Portátil, um único `.exe`, em Português, English e Español.
 
 > 💸 **100% gratuito.** Se você pagou, foi enganado. Site oficial: [evlcorp.lol](https://evlcorp.lol)
 >
-> 🔓 **Código aberto e auditável.** Licença própria: grátis para uso pessoal e pequenas empresas. Sem telemetria e sem chamadas de rede.
+> 🔓 **Código aberto e auditável.** Licença própria: grátis para uso pessoal e pequenas empresas.
+>
+> 🔒 Sem telemetria. A única requisição de rede é uma verificação de atualização opcional, uma vez por dia (veja [Atualizações](#-atualizações)).
 
 ---
 
@@ -57,7 +59,13 @@ Portátil, um único `.exe`, em Português, English e Español.
 
 Transparência. O app pede **administrador**, mexe no registro, remove apps e apaga arquivos, então você deve poder ler exatamente o que ele faz.
 
-Ele **não tem telemetria nem faz chamadas de rede**. O único link é um botão que abre o evlcorp.lol no navegador.
+Ele **não tem telemetria**. A única requisição de rede é a verificação de atualização opcional, e os links abrem o [evlcorp.lol](https://evlcorp.lol) no navegador.
+
+## 🔄 Atualizações
+
+- 📅 Uma vez por dia, o app pergunta ao GitHub qual é a versão mais recente e mostra um aviso na tela Início se houver uma nova
+- 🔒 Nenhum dado é enviado, e **nada é baixado nem instalado sozinho**: o aviso abre a página de download no [evlcorp.lol](https://evlcorp.lol)
+- ⚙️ Desligue em **Configurações → Avisar sobre novas versões**
 
 ## 🗂️ Estrutura
 

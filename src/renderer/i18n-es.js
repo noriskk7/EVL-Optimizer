@@ -285,6 +285,8 @@
     'set.tray': 'Cerrar a la bandeja', 'set.tray.d': 'La ventana se cierra de verdad y EVL sigue en la bandeja usando unos 20 MB.',
     'set.startup': 'Iniciar con Windows', 'set.startup.d': 'Abre en la bandeja al iniciar sesión en Windows.',
     'set.recycle': 'Restos de programas a la Papelera', 'set.recycle.d': 'Las carpetas borradas por el desinstalador van a la Papelera en lugar de desaparecer.',
+    'set.update': 'Avisar de nuevas versiones', 'set.update.d': 'Una consulta al día a GitHub para saber la última versión. No se envía nada más que una petición normal, y la app nunca descarga nada sola.',
+    'upd.text': 'Versión {v} disponible', 'upd.get': 'Descargar', 'upd.ignore': 'Ignorar',
     'set.about': 'Acerca de', 'set.version': 'Versión', 'set.data': 'Carpeta de datos', 'set.saved': 'Preferencia guardada',
     'set.startupFailed': 'No se pudo crear la tarea de inicio.',
     'set.tab.general': 'General', 'set.tab.appearance': 'Apariencia', 'set.tab.about': 'Acerca de',

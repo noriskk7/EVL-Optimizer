@@ -61,6 +61,7 @@
       if (latest && latest.t) { state.metrics = latest; state.game = latest.game; updateChrome(latest); }
       App.navigate('home');
       if (!settings.welcomed) App.showScam(true);
+      App.checkUpdate();
     },
 
     scamCard() {
@@ -159,6 +160,32 @@
       if (state.info.elevated) return null;
       const b = h('div', { class: 'banner' }, icon('lock'), h('span', null, t('shell.adminBanner')),
         h('button', { class: 'btn sm', onClick: () => App.invoke('app:relaunchAdmin') }, icon('shield'), t('shell.adminBtn')));
+      if (el) el.appendChild(b);
+      return b;
+    },
+
+    async checkUpdate() {
+      const cfg = state.settings;
+      if (!cfg.updateCheck || Date.now() - (cfg.updateLast || 0) < 24 * 3600 * 1000) return;
+      const r = await App.invoke('update:check');
+      if (!r || !r.ok) return;
+      await App.saveSettings({ updateLast: Date.now(), updateLatest: r.available ? r.latest : '' });
+      if (state.page === 'home') App.navigate('home');
+    },
+
+    updateBanner(el) {
+      const cfg = state.settings;
+      const v = cfg.updateLatest;
+      const newer = (a, b) => {
+        const x = String(a).split('.').map(Number);
+        const y = String(b).split('.').map(Number);
+        for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
+        return false;
+      };
+      if (!cfg.updateCheck || !v || cfg.updateIgnored === v || !newer(v, state.info.version)) return null;
+      const b = h('div', { class: 'banner' }, icon('arrowDown'), h('span', null, t('upd.text', { v })),
+        h('button', { class: 'btn sm', onClick: () => App.invoke('shell:openExternal', 'https://evlcorp.lol/releases#evl-optimizer') }, icon('external'), t('upd.get')),
+        h('button', { class: 'btn sm ghost', onClick: async () => { await App.saveSettings({ updateIgnored: v }); b.remove(); } }, t('upd.ignore')));
       if (el) el.appendChild(b);
       return b;
     },

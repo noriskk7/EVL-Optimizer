@@ -22,6 +22,7 @@ const core = {
   settings: require('./core/settings'),
   memory: require('./core/memory'),
   cleaner: require('./core/cleaner'),
+  updater: require('./core/updater'),
   tweaks: require('./core/tweaks'),
   system: require('./core/system'),
   uninstaller: require('./core/uninstaller'),
@@ -618,6 +619,7 @@ const handlers = {
   'uninstall:list': () => core.uninstaller.listPrograms(),
   'uninstall:size': (location) => core.uninstaller.folderSize(location),
   'uninstall:running': (location) => core.uninstaller.runningFrom(location),
+  'update:check': () => core.updater.check(),
   'uninstall:run': async ({ id, quiet }) => {
     const program = programById(id);
     if (!program) return { ok: false, reason: 'missing' };
